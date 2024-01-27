@@ -7,7 +7,7 @@ local script_autoupd = {
     gitapi_url = "https://api.github.com/repos/trashlll/test_zip/contents",
     update_status = nil
 }
-
+--
 local function async_http_request(method, url, args, resolve, reject)
     local request_thread = effil.thread(function (method, url, args)
        local requests = require 'requests'
