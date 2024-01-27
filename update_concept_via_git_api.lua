@@ -4,7 +4,7 @@ local effil = require 'effil'
 local lfs = require("lfs")
 
 local script_autoupd = {
-    gitapi_url = "",
+    gitapi_url = "https://api.github.com/repos/trashlll/test_zip/contents",
     update_status = nil
 }
 
@@ -74,21 +74,33 @@ end
 function update_my_script(url)
     async_http_request('GET', url, nil, function(response)
         local json_data = decodeJson(response.text)
+        local script_founded = false
         if json_data then
             for _, data in ipairs(json_data) do
                 local sha_local = hash.gen_sha(thisScript().path)
-                if data.name ==thisScript().name and data.sha ~= sha_local then
-                    download_file(data.download_url, thisScript().path, filename, function(success)
-                        script_autoupd.update_status = true
-                        return
-                    end)
+                if data.name == thisScript().name then
+                    script_founded = true
+                    if data.sha ~= sha_local then
+                        download_file(data.download_url, thisScript().path, filename, function(success)
+                            script_autoupd.update_status = "updated"
+                            return true
+                        end)
+                    else
+                        script_autoupd.update_status = "last"
+                        return true
+                    end
                 end
             end
+            if not script_founded then
+                script_autoupd.update_status = "error"
+                return false
+            end
         else
-            script_autoupd.update_status = false
+            script_autoupd.update_status = "error"
             return false
         end
     end, function(error)
+        script_autoupd.update_status = "error"
         print(string.format("Error: %s", error))
     end)
 end
@@ -99,9 +111,11 @@ function update_handler(url)
         repeat
             wait(100)
         until script_autoupd.update_status ~= nil
-        if script_autoupd.update_status then
+        if script_autoupd.update_status == "updated" then
             sampAddChatMessage('Скрипт '..thisScript().name.. ' обновлен! Текущая версия: '..thisScript().version, -1)
-        else
+        elseif script_autoupd.update_status == "last" then
+            sampAddChatMessage('Вы используете последнюю версию '..thisScript().version.. ' Скрипта' ..thisScript().name, -1)
+        elseif script_autoupd.update_status == "error" then
             sampAddChatMessage('Возникла ошибка при обновлении '..thisScript().name.. '! Текущая версия: '..thisScript().version, -1)
         end
     end)
@@ -109,7 +123,7 @@ end
 
 function main()
     while not isSampAvailable() do wait(0) end
-        
+    update_handler(script_autoupd.gitapi_url)
     while true do
         wait(0)
         
