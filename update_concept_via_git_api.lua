@@ -47,7 +47,7 @@ end
 function download_file(url, path, filename, callback)
     local success = false
     local content
-    asyncHttpRequest('GET', url, nil, function(response)
+    async_http_request('GET', url, nil, function(response)
         content = response.text
         success = true
     end, function(error)
@@ -82,7 +82,7 @@ function update_my_script(url)
                     script_founded = true
                     if data.sha ~= sha_local then
                         download_file(data.download_url, thisScript().path, filename, function(success)
-                            script_autoupd.update_status = "updated"
+                            sampAddChatMessage('Скрипт: '..thisScript().name.. ' обновлен! Текущая версия: '..thisScript().version, -1)
                             return true
                         end)
                     else
@@ -111,12 +111,10 @@ function update_handler(url)
         repeat
             wait(100)
         until script_autoupd.update_status ~= nil
-        if script_autoupd.update_status == "updated" then
-            sampAddChatMessage('Скрипт '..thisScript().name.. ' обновлен! Текущая версия: '..thisScript().version, -1)
-        elseif script_autoupd.update_status == "last" then
-            sampAddChatMessage('Вы используете последнюю версию '..thisScript().version.. ' Скрипта' ..thisScript().name, -1)
+        if script_autoupd.update_status == "last" then
+            sampAddChatMessage('Вы используете последнюю версию['..thisScript().version.. '] Скрипта: ' ..thisScript().name, -1)
         elseif script_autoupd.update_status == "error" then
-            sampAddChatMessage('Возникла ошибка при обновлении '..thisScript().name.. '! Текущая версия: '..thisScript().version, -1)
+            sampAddChatMessage('Возникла ошибка при обновлении ['..thisScript().name.. ']! Текущая версия: '..thisScript().version, -1)
         end
     end)
 end
